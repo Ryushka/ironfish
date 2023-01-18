@@ -23,6 +23,8 @@ import { Transaction } from './transaction'
 const noteHasher = new NoteHasher()
 const MAX_MINT_OR_BURN_VALUE = BigInt(100_000_000_000_000_000n)
 
+export const TYPE_NUMBER_SIZE = 8
+
 export class RawTransaction {
   spendingKey = ''
   expiration: number | null = null
@@ -193,31 +195,31 @@ export class RawTransactionSerde {
     size += bufio.sizeVarString(raw.spendingKey)
     size += TRANSACTION_FEE_LENGTH // raw.fee
 
-    size += 8 // raw.spends.length
+    size += TYPE_NUMBER_SIZE // raw.spends.length
     for (const spend of raw.spends) {
       size += bufio.sizeVarBytes(spend.note.serialize())
 
-      size += 8 // spend.witness.treeSize()
+      size += TYPE_NUMBER_SIZE // spend.witness.treeSize()
       size += bufio.sizeVarBytes(spend.witness.rootHash)
-      size += 8 // spend.witness.authPath.length
+      size += TYPE_NUMBER_SIZE // spend.witness.authPath.length
       for (const step of spend.witness.authPath()) {
         size += 1 // step.side()
         size += bufio.sizeVarBytes(step.hashOfSibling())
       }
     }
 
-    size += 8 // raw.receives.length
+    size += TYPE_NUMBER_SIZE // raw.receives.length
     for (const receive of raw.receives) {
       size += bufio.sizeVarBytes(receive.note.serialize())
     }
 
-    size += 8 // raw.mints.length
+    size += TYPE_NUMBER_SIZE // raw.mints.length
     for (const _ of raw.mints) {
       size += ASSET_LENGTH // mint.asset
       size += AMOUNT_VALUE_LENGTH // mint.value
     }
 
-    size += 8 // raw.burns.length
+    size += TYPE_NUMBER_SIZE // raw.burns.length
     for (const _ of raw.burns) {
       size += ASSET_ID_LENGTH // burn.assetId
       size += AMOUNT_VALUE_LENGTH // burn.value
