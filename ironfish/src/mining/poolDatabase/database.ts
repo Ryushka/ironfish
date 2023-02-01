@@ -51,7 +51,18 @@ export class PoolDatabase {
   }
 
   async newShare(publicAddress: string): Promise<void> {
+    // Old shares
     await this.db.run('INSERT INTO share (publicAddress) VALUES (?)', publicAddress)
+
+    // New shares
+    const sql = `
+      INSERT INTO payoutShare (payoutPeriodId, publicAddress)
+      VALUES (
+        (SELECT id FROM payoutPeriod WHERE end IS NULL),
+        ?
+      )
+    `
+    await this.db.run(sql, publicAddress)
   }
 
   async newBlock(sequence: number, hash: string, reward: string): Promise<void> {
@@ -178,11 +189,20 @@ export class PoolDatabase {
   }
 }
 
+// Old share
 export type DatabaseShare = {
   id: number
   publicAddress: string
   createdAt: Date
   payoutId: number | null
+}
+
+// New share
+export type DatabasePayoutShare = {
+  id: number
+  publicAddress: string
+  createdAt: string
+  payoutPeriodId: number
 }
 
 export type DatabasePayoutPeriod = {
